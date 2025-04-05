@@ -1,0 +1,4 @@
+ALTER TABLE
+  posts
+ADD
+  COLUMN IF NOT EXISTS version INT DEFAULT 0;

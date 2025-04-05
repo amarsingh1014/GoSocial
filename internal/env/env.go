@@ -33,3 +33,20 @@ func GetInt(key string, fallback int) int {
 
 	return valAsInt
 }
+
+func GetBool(key string, fallback bool) bool {
+	val, ok := os.LookupEnv(key)
+	fmt.Printf("GetBool: key=%s, val=%s, ok=%v\n", key, val, ok) // Debug print
+
+	if !ok {
+		return fallback
+	}
+
+	valAsBool, err := strconv.ParseBool(val)
+	if err != nil {
+		fmt.Printf("GetBool: error converting val=%s to bool: %v\n", val, err) // Debug print
+		return fallback
+	}
+
+	return valAsBool
+}

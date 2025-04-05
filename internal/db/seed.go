@@ -32,9 +32,14 @@ func Seed(store *store.Storage) error {
 	// Seed users
 	users := generateUsers(100)
 	for i, user := range users {
-		if err := store.Users.Create(ctx, &user); err != nil {
+		// Generate a token for each user
+		token := fmt.Sprintf("token-for-user-%d", i)
+		expiry := time.Hour * 24 // 1 day expiration
+
+		if err := store.Users.CreateAndInvite(ctx, &user, token, expiry); err != nil {
 			return fmt.Errorf("failed to create user: %w", err)
 		}
+
 		users[i].ID = user.ID // Ensure the ID is set correctly
 		log.Printf("Created user: %s with ID: %d", user.Username, user.ID)
 	}
@@ -68,7 +73,7 @@ func generateUsers(num int) []store.User {
 		users = append(users, store.User{
 			Username: name + strconv.Itoa(i),
 			Email:    name + strconv.Itoa(i) + "@example.com",
-			Password: "password",
+			RoleID: 1,
 		})
 	}
 

@@ -17,7 +17,7 @@ type PaginatedFieldQuery struct {
 	Until  string   `json:"until"`
 }
 
-func (p PaginatedFieldQuery) Parse(r *http.Request) (PaginatedFieldQuery, error) {
+func (p *PaginatedFieldQuery) Parse(r *http.Request) error {
 
 	qs := r.URL.Query()
 
@@ -26,7 +26,7 @@ func (p PaginatedFieldQuery) Parse(r *http.Request) (PaginatedFieldQuery, error)
 	if limit != "" {
 		limit, err := strconv.Atoi(limit)
 		if err != nil {
-			return PaginatedFieldQuery{}, err
+			return err
 		}
 		p.Limit = limit
 	}
@@ -36,7 +36,7 @@ func (p PaginatedFieldQuery) Parse(r *http.Request) (PaginatedFieldQuery, error)
 	if offset != "" {
 		offset, err := strconv.Atoi(offset)
 		if err != nil {
-			return PaginatedFieldQuery{}, err
+			return err
 		}
 		p.Offset = offset
 	}
@@ -71,7 +71,7 @@ func (p PaginatedFieldQuery) Parse(r *http.Request) (PaginatedFieldQuery, error)
 		p.Until = parseTime(until)
 	}
 
-	return p, nil
+	return nil
 }
 
 func parseTime(s string) string {

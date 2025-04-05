@@ -1,0 +1,5 @@
+ALTER TABLE 
+    users
+DROP
+    COLUMN is_active BOOLEAN NOT NULL DEFAULT FALSE;
+    

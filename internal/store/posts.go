@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -144,15 +145,15 @@ func (s *PostsStore) GetUserFeed(ctx context.Context, userId int64, fq Paginated
         FROM posts p
         LEFT JOIN comments c ON p.id = c.post_id
         LEFT JOIN users u ON p.user_id = u.id
-        JOIN followers f ON p.user_id = f.follower_id OR p.user_id = $1
-        WHERE f.user_id = $1`
+        LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = $1
+        WHERE (p.user_id = $1 OR f.follower_id IS NOT NULL)`
 
 	if fq.Search != "" {
 		baseQuery += ` AND (p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%')`
 	}
 
 	if len(fq.Tags) > 0 {
-		baseQuery += ` AND (p.tags @> $5)`
+		baseQuery += ` AND (p.tags @> $5::text[])`
 	}
 
 	baseQuery += `
@@ -164,9 +165,16 @@ func (s *PostsStore) GetUserFeed(ctx context.Context, userId int64, fq Paginated
 	var rows *sql.Rows
 	var err error
 
+	// Debug logging before executing query
 	if fq.Search != "" && len(fq.Tags) > 0 {
+		fmt.Println("Executing search and tags query:")
+		fmt.Println("SQL:", baseQuery)
+		fmt.Println("Params:", userId, fq.Limit, fq.Offset, fq.Search, fq.Tags)
 		rows, err = s.db.QueryContext(ctx, baseQuery, userId, fq.Limit, fq.Offset, fq.Search, pq.Array(fq.Tags))
 	} else if fq.Search != "" {
+		fmt.Println("Executing search query:")
+		fmt.Println("SQL:", baseQuery)
+		fmt.Println("Params:", userId, fq.Limit, fq.Offset, fq.Search)
 		rows, err = s.db.QueryContext(ctx, baseQuery, userId, fq.Limit, fq.Offset, fq.Search)
 	} else if len(fq.Tags) > 0 {
 		rows, err = s.db.QueryContext(ctx, baseQuery, userId, fq.Limit, fq.Offset, pq.Array(fq.Tags))
